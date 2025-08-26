@@ -1,8 +1,29 @@
 
+from dataclasses import dataclass
 from fractions import Fraction
 
 
-def get_min_turns(distance: int):
+@dataclass
+class GameInfo:
+    minimum_turns: int
+    optimal_probability: float
+    loop_free_combinations: int
+
+
+def get_game_info(spaces: int) -> GameInfo:
+
+    if not isinstance(spaces, int) or spaces < 3:
+        raise ValueError("O valor das casas deve ser maior que 2")
+    
+    distance = spaces - 1
+    min_turns = get_min_turns(distance)
+    prob_optimal = get_prob_optimal(distance, min_turns)
+    loop_free = get_loop_free_combination(distance)
+    
+    return GameInfo(min_turns, prob_optimal, loop_free)
+
+
+def get_min_turns(distance: int) -> int:
     return (distance + 2) // 3
 
 
@@ -24,32 +45,16 @@ def get_loop_free_combination(distance: int) -> int:
     elif distance == 2:
         return 2
     
-    f0, f1, f2 = 1, 1, 2 # f(0), f(1), f(2)
+    previous_3, previous_2, previous_1 = 1, 1, 2 # f(0), f(1), f(2)
     for _ in range(3, distance + 1):
-        f0, f1, f2 = f1, f2, f0 + f1 + f2
-    return f2
-
-
-def get_game_info(spaces: int) -> dict:
-
-    if not isinstance(spaces, int) or spaces < 3:
-        raise ValueError("O valor das casas deve ser maior que 2")
-    
-    distance = spaces - 1
-    min_turns = get_min_turns(distance)
-    prob_optimal = get_prob_optimal(distance, min_turns)
-    loop_free = get_loop_free_combination(distance)
-
-    return {
-        "minimum_turns": min_turns,
-        "optimal_probability": prob_optimal, 
-        "loop_free_combinations": loop_free, 
-    }
+        current = previous_3 + previous_2 + previous_1
+        previous_3, previous_2, previous_1 = previous_2, previous_1, current
+    return previous_1
 
 
 if __name__ == "__main__":
-    for n in [3, 4, 5, 6, 10]:
-        print(f"f({n}): ",get_game_info(n))
+    for number in [3, 4, 5, 6, 10]:
+        print(f"f({number}): ",get_game_info(number))
     
     
     
